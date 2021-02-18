@@ -114,7 +114,7 @@ type Network struct {
 
 type BootDevice string
 
-const BOOT_net, BOOT_disk, BOOT_none BootDevice = "net", "disk", "none"
+const BOOT_net, BOOT_disk, BOOT_dvd, BOOT_none BootDevice = "net", "disk", "dvd", "none"
 
 type VirtualMachineSpec struct {
 	// Name identifies the vm and is also used in forming full path, see VBox.BasePath
