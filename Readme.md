@@ -133,7 +133,7 @@ func AttachDisk(vm *vbg.VirtualMachine) error {
     vb := vbg.NewVBox(vbg.Config{})
     ctx := context.Background()  
     context.WithTimeout(ctx, 1*time.Minute)
-    vb.AttachStorage(vm, disk2)
+    vb.AttachStorageDrive(vm, disk2)
 }
 ```
 
