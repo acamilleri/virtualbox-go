@@ -56,7 +56,12 @@ func (vb *VBox) AddStorageController(vm *VirtualMachine, ctr StorageController) 
 	return nil
 }
 
-func (vb *VBox) AttachStorage(vm *VirtualMachine, disk *Disk) error {
+func (vb *VBox) attachStorage(args ...string) error {
+	_, err := vb.manage(args...)
+	return err
+}
+
+func (vb *VBox) AttachStorageDrive(vm *VirtualMachine, disk *Disk) error {
 	nonRotational := "off"
 	if disk.NonRotational {
 		nonRotational = "on"
@@ -71,8 +76,8 @@ func (vb *VBox) AttachStorage(vm *VirtualMachine, disk *Disk) error {
 			autoDiscard = "on"
 		}
 	}
-	_, err := vb.manage(
-		"storageattach", vm.Spec.Name,
+
+	return vb.attachStorage("storageattach", vm.Spec.Name,
 		"--storagectl", disk.Controller.Name,
 		"--port", strconv.Itoa(disk.Controller.Port),
 		"--device", strconv.Itoa(disk.Controller.Device),
@@ -80,8 +85,15 @@ func (vb *VBox) AttachStorage(vm *VirtualMachine, disk *Disk) error {
 		"--medium", disk.Path,
 		"--nonrotational", nonRotational,
 		"--discard", autoDiscard)
+}
 
-	return err
+func (vb *VBox) AttachOpticalDrive(vm *VirtualMachine, opticalDrive *Disk) error {
+	return vb.attachStorage("storageattach", vm.Spec.Name,
+		"--storagectl", opticalDrive.Controller.Name,
+		"--port", strconv.Itoa(opticalDrive.Controller.Port),
+		"--device", strconv.Itoa(opticalDrive.Controller.Device),
+		"--type", string(opticalDrive.Type),
+		"--medium", opticalDrive.Path)
 }
 
 func (vb *VBox) SetMemory(vm *VirtualMachine, sizeMB int) error {
@@ -344,7 +356,7 @@ func (vb *VBox) Define(context context.Context, vm *VirtualMachine) (*VirtualMac
 
 	disks := vm.Spec.Disks
 	for i := range disks {
-		if err := vb.AttachStorage(vm, &disks[i]); err != nil && !IsAlreadyExistsError(err) {
+		if err := vb.AttachStorageDrive(vm, &disks[i]); err != nil && !IsAlreadyExistsError(err) {
 			return nil, OperationError{Path: fmt.Sprintf("storagecontroller/%d", i), Op: "attach", Err: err}
 		}
 	}
